@@ -1,0 +1,226 @@
+{
+  "name": "Full Node Sync Monitor (BSC)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -280,
+        -260
+      ],
+      "id": "1c6ef74b-fb8d-4cc6-9590-512811986d4e",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9f5a218d-75ea-40ac-9468-a4f940615e7f",
+              "leftValue": "={{ $json.result }}",
+              "rightValue": "false",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        160,
+        -360
+      ],
+      "id": "d95892ab-416f-4a5c-9195-778d78f1f218",
+      "name": "If",
+      "executeOnce": false,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://your_bsc_node_ip:8545",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_syncing\",\n  \"params\": [],\n  \"id\": 1\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -60,
+        -260
+      ],
+      "id": "5283f5f0-9a3b-4b93-9c9f-81d16b71f4b0",
+      "name": "Check Node",
+      "executeOnce": false,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "put your chat id",
+        "text": "The BSC full node is not synced with the blockchain",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        380,
+        -360
+      ],
+      "id": "bc54d031-c217-44dd-a358-086fec65e499",
+      "name": "Send Alert",
+      "webhookId": "b53b0f95-feff-4691-98f0-c2b6ea8ada5e",
+      "credentials": {
+        "telegramApi": {
+          "id": "V98uu7lHjb6ip0XW",
+          "name": "Adel Telegram"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Full Node Sync Monitor (BSC)",
+        "height": 460,
+        "width": 980
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -390,
+        -460
+      ],
+      "typeVersion": 1,
+      "id": "a3eda7f6-5b18-4c2c-a856-5ee2343e2567",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# 🧠 Workflow Note: Full Node Sync Monitor (BSC)\nThis workflow monitors the sync status of a BSC (Binance Smart Chain) full node using the eth_syncing RPC method. It runs every 1 minute to ensure timely detection of node desynchronization.\n\n##🛠️ How it works:\nSchedule Trigger: Executes the check every minute.\n\nCheck Node (HTTP Request): Sends a POST request to the local full node’s JSON-RPC interface to run the eth_syncing method.\n\nIF Condition:\n\nIf the result is not \"false\", it means the node is syncing or has an issue.\n\nAlerting:\n\n✅ If there is an issue, a Telegram alert is sent to the specified admin.\n\n⚠️ If the HTTP request fails (e.g., timeout, server down), a Discord alert is triggered to notify of a potential node failure.\n\n## 📬 Notifications:\n🔔 Telegram message: \"The BSC full node is not synced with the blockchain\". (You can use Discord instead of Telegram)\n🔔 Discord embed: [Firing] BSC Node – The BSC node is not up. (You can use Telegram instead of Discord)\n\nUse this workflow to monitor full node reliability and quickly act on sync issues to maintain RPC service availability.\n\n## Usage:\n1. Put BSC full nod URL or IP on check node\n2. Set Chat ID and Credential on telegram node(Send Alert) to send alert via telegram.(if you want to get meesage on telegram)\n3. Create a Credential for discord and add to discord node (Failed Request) to send alert via telegram.(if you want to get meesage on discord)",
+        "height": 820,
+        "width": 760,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        620,
+        -540
+      ],
+      "typeVersion": 1,
+      "id": "53ccee1d-7b3f-4b23-82e0-77746a0ed2d0",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "options": {},
+        "embeds": {
+          "values": [
+            {
+              "description": "The BSC node is not up",
+              "color": "#A41212",
+              "title": "[Firing] BSC Node"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -160
+      ],
+      "id": "919becd9-50f3-4350-a13c-9fbacf505be3",
+      "name": "Failed Request",
+      "webhookId": "4a058609-f392-4113-ad0e-c4a8af5359ab",
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "zfZ8pSyWXWkFzO5u",
+          "name": "Discord Webhook account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Check Node": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Failed Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f446c112-2bc7-4c19-93e6-124145e13dd6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "caa32ddca7dc0af05b9225675346f35bdd459e2ed163da5ed03cbd730977acaf"
+  },
+  "id": "Bt6TF8UjNyhdldRy",
+  "tags": [
+    {
+      "createdAt": "2025-06-08T12:06:46.553Z",
+      "updatedAt": "2025-06-08T12:06:46.553Z",
+      "id": "5P6Y81Lj80HaaXg8",
+      "name": "Blockchain"
+    }
+  ]
+}
