@@ -1,0 +1,334 @@
+{
+  "name": "Invoice Check",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        -144
+      ],
+      "id": "7ef29f4a-e8d3-4f25-ab2d-264b8fd3132e",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        896,
+        -144
+      ],
+      "id": "4a568081-a020-408b-bedd-475a35a7f99a",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "16192241-2876-4278-8c73-75fd53d8ea2b",
+              "leftValue": "={{ $json.message.content }}",
+              "rightValue": "Domain 1",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "89b0333d-15fa-4c5d-af7f-01ad427c8c07",
+              "leftValue": "={{ $json.message.content }}",
+              "rightValue": "Handler Account",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1472,
+        -144
+      ],
+      "id": "7b8cf1f1-a1fc-4d8d-928a-fbad08f7e2f8",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/home/exfiles/domains.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        256,
+        -48
+      ],
+      "id": "49ca2dbd-8ae1-4138-9363-54ca50f70a91",
+      "name": "Get CSV File"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        448,
+        -48
+      ],
+      "id": "e0432c39-8180-465b-be77-c9928e861b38",
+      "name": "Extract CSV File"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = items.map(i => i.json);\nconst headers = Object.keys(rows[0]);\nconst table = [\n  `| ${headers.join(' | ')} |`,\n  `| ${headers.map(()=> '---').join(' | ')} |`,\n  ...rows.map(r => `| ${headers.map(h => r[h]).join(' | ')} |`)\n].join('\\n');\nreturn [{ json: { table_md: table } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -48
+      ],
+      "id": "25af5c07-7604-4d0d-addd-4cfafcd10efb",
+      "name": "Make a Table"
+    },
+    {
+      "parameters": {
+        "chatId": "-1002870207017",
+        "text": "={{ $json.message.content }}\n",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1696,
+        -160
+      ],
+      "id": "c838fd11-4789-4f6a-b73f-e137f83c096d",
+      "name": "Send Result",
+      "webhookId": "ce039f67-4fcc-4246-a056-3659f0f05042",
+      "credentials": {
+        "telegramApi": {
+          "id": "7yb5Deaw5CRu3qSC",
+          "name": "Payment Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Returns one item with Jalali/Shamsi date (Persian + Latin digits)\nconst now = new Date();\n\nconst fa = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {\n  year:'numeric', month:'2-digit', day:'2-digit'\n}).format(now); // e.g. \"۱۴۰۴/۰۶/۰۹\"\n\nconst faLatn = new Intl.DateTimeFormat('fa-IR-u-ca-persian-nu-latn', {\n  year:'numeric', month:'2-digit', day:'2-digit'\n}).format(now); // e.g. \"1404/06/09\"\n\nreturn [\n  {\n    json: {\n      nowGregorianISO: now.toISOString(),\n      jalali: fa,\n      jalaliLatin: faLatn,\n    },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        -240
+      ],
+      "id": "2e5993ec-6fdf-4d28-89b5-39ba6fc76ac6",
+      "name": "Current Time"
+    },
+    {
+      "parameters": {
+        "operation": "formatDate",
+        "date": "={{ $json.jalaliLatin }}",
+        "format": "yyyy/MM/dd",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -240
+      ],
+      "id": "85c0d305-3f56-4dbf-8ee7-a3acfb651237",
+      "name": "Change Date Format"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-5-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Please provide the domain(s) whose expiration time is less than 2 day.\nJust provide information like output section.\nPayment Date is based on the Shamsi (Iranian) calendar.\n\nDomain Information:\n{{ $json.table_md }}\n\nCurrent Date to shamsi (Iran Calender):\n{{ $('Current Time').item.json.jalaliLatin }}\n\nOutput Example:\n\n[\n{\n\"Domain 1\": \"example.com\",\n\"Expire Date\": \"1404/09/15\",\n\"Days Left to Expiration\": 60,\n\"Handler\": \"Jane Doe\",\n\"Handler Account\": \"jane.doe@example.com\"\n}\n// ...more domains\n]\n----------------------------\n\nReminder: it's essential to stay in the above output."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1120,
+        -144
+      ],
+      "id": "732081b7-932d-4242-a768-29bef336ba74",
+      "name": "Check Domains",
+      "credentials": {
+        "openAiApi": {
+          "id": "gIsLLz8Of1GXN15Y",
+          "name": "Financial Analysis"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get CSV File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Current Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Check Domains",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get CSV File": {
+      "main": [
+        [
+          {
+            "node": "Extract CSV File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract CSV File": {
+      "main": [
+        [
+          {
+            "node": "Make a Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Make a Table": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Current Time": {
+      "main": [
+        [
+          {
+            "node": "Change Date Format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Change Date Format": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Domains": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Tehran",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "fa6c0b02-7f0f-48d5-9a34-98147e44e219",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "caa32ddca7dc0af05b9225675346f35bdd459e2ed163da5ed03cbd730977acaf"
+  },
+  "id": "08R7OcUyBqaB4Vrn",
+  "tags": [
+    {
+      "createdAt": "2025-08-04T07:14:56.705Z",
+      "updatedAt": "2025-08-04T07:14:56.705Z",
+      "id": "uqHfjutVk3hXNwXD",
+      "name": "DevOps"
+    }
+  ]
+}
