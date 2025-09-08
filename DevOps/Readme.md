@@ -44,6 +44,10 @@ Tip: Replace the If node with a tiny Code validator to parse and verify the JSON
 - The CSV file path inside the n8n runtime (/home/exfiles/domains.csv).
 - If you run n8n in Docker, bind-mount the host folder to this path.
 
+## Input Example (CSV file)
+<img width="1172" height="164" alt="Screenshot 2025-09-08 at 16 58 55" src="https://github.com/user-attachments/assets/5bb92a3f-f392-446d-b879-18e814a5ec5f" />
+
+
 ## Output Example
 
 The OpenAI node is instructed to return only JSON:
